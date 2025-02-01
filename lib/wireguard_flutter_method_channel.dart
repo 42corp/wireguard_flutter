@@ -34,11 +34,13 @@ class WireGuardFlutterMethodChannel extends WireGuardFlutterInterface {
     required String serverAddress,
     required String wgQuickConfig,
     required String providerBundleIdentifier,
+    List<String>? dns,
   }) async {
     return _methodChannel.invokeMethod("start", {
       "serverAddress": serverAddress,
       "wgQuickConfig": wgQuickConfig,
       "providerBundleIdentifier": providerBundleIdentifier,
+      "dns": dns,
     });
   }
 

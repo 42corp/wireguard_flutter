@@ -7,6 +7,7 @@ abstract class WireGuardFlutterInterface {
     required String serverAddress,
     required String wgQuickConfig,
     required String providerBundleIdentifier,
+    List<String>? dns,
   });
 
   Future<void> stopVpn();
