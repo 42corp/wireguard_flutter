@@ -54,10 +54,17 @@ public class WireguardFlutterPlugin: NSObject, FlutterPlugin {
             case "stop":
                 self.disconnect(result: result)
             case "start":
-                let serverAddress: String? = (call.arguments as? [String: Any])?["serverAddress"] as? String
-                let wgQuickConfig: String? = (call.arguments as? [String: Any])?["wgQuickConfig"] as? String
-                let providerBundleIdentifier: String? = (call.arguments as? [String: Any])?["providerBundleIdentifier"] as? String
-                self.connect(serverAddress: serverAddress!, wgQuickConfig: wgQuickConfig!, providerBundleIdentifier: providerBundleIdentifier!, result: result)
+                let args = call.arguments as? [String: Any]
+                let serverAddress: String? = args?["serverAddress"] as? String
+                let wgQuickConfig: String? = args?["wgQuickConfig"] as? String
+                let providerBundleIdentifier: String? = args?["providerBundleIdentifier"] as? String
+                let dns: [String]? = args?["dns"] as? [String]
+                
+                self.connect(serverAddress: serverAddress!,
+                             wgQuickConfig: wgQuickConfig!,
+                             providerBundleIdentifier: providerBundleIdentifier!,
+                             dns: dns,
+                             result: result)
             
             case "dispose":
                 self.initialized = false
@@ -67,8 +74,8 @@ public class WireguardFlutterPlugin: NSObject, FlutterPlugin {
         })
     }
     
-    private func connect(serverAddress: String, wgQuickConfig: String, providerBundleIdentifier: String, result: @escaping FlutterResult) {
-        WireguardFlutterPlugin.utils.configureVPN(serverAddress: serverAddress, wgQuickConfig: wgQuickConfig, providerBundleIdentifier: providerBundleIdentifier) { success in
+    private func connect(serverAddress: String, wgQuickConfig: String, providerBundleIdentifier: String, dns: [String]?, result: @escaping FlutterResult) {
+        WireguardFlutterPlugin.utils.configureVPN(serverAddress: serverAddress, wgQuickConfig: wgQuickConfig, providerBundleIdentifier: providerBundleIdentifier, customDNS: dns) { success in
             result(success)
         }
     }
@@ -200,7 +207,7 @@ class VPNUtils {
         }
     }
     
-    func configureVPN(serverAddress: String?, wgQuickConfig: String?, providerBundleIdentifier: String?, completion: @escaping (Bool) -> Void) {
+    func configureVPN(serverAddress: String?, wgQuickConfig: String?, providerBundleIdentifier: String?, customDNS: [String]?, completion: @escaping (Bool) -> Void) {
         NETunnelProviderManager.loadAllFromPreferences { tunnelManagersInSettings, error in
             if let error = error {
                 NSLog("Error (loadAllFromPreferences): \(error)")
@@ -214,7 +221,10 @@ class VPNUtils {
             
             protocolConfiguration.providerBundleIdentifier = providerBundleIdentifier!
             protocolConfiguration.serverAddress = serverAddress
-            protocolConfiguration.providerConfiguration = ["wgQuickConfig": wgQuickConfig!]
+            protocolConfiguration.providerConfiguration = [
+                "wgQuickConfig": wgQuickConfig!,
+                "customDNS": customDNS ?? []
+            ]
             
             tunnelManager.protocolConfiguration = protocolConfiguration
             tunnelManager.isEnabled = true
