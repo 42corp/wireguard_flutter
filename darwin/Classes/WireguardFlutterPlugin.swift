@@ -222,13 +222,7 @@ class VPNUtils {
             protocolConfiguration.providerBundleIdentifier = providerBundleIdentifier!
             protocolConfiguration.serverAddress = serverAddress
             
-            // Prepare DNS list with 1.1.1.1 as fallback
-            let fallbackDNS = "1.1.1.1"
             var dnsServersToSend = customDNS ?? []
-            
-            if !dnsServersToSend.contains(fallbackDNS) {
-                dnsServersToSend.append(fallbackDNS)
-            }
             
             protocolConfiguration.providerConfiguration = [
                 "wgQuickConfig": wgQuickConfig!,
