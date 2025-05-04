@@ -120,9 +120,9 @@ public class WireguardFlutterPlugin: NSObject, FlutterPlugin {
             
             self.vpnConnection = events
             
-            NETunnelProviderManager.loadAllFromPreferences { managers, error in
-                events(WireguardFlutterPlugin.utils.onVpnStatusChangedString(notification: managers?.first?.connection.status))
-            }
+            // NETunnelProviderManager.loadAllFromPreferences { managers, error in
+            //    events(WireguardFlutterPlugin.utils.onVpnStatusChangedString(notification: managers?.first?.connection.status))
+            // }
             
             return nil
         }
