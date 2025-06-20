@@ -281,10 +281,18 @@ class WireguardFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     }
 
     private fun checkPermission() {
-        val intent = GoBackend.VpnService.prepare(this.activity)
+        // Use context instead of activity when activity is null
+        val prepareContext = this.activity ?: this.context
+        val intent = GoBackend.VpnService.prepare(prepareContext)
         if (intent != null) {
             havePermission = false
-            this.activity?.startActivityForResult(intent, PERMISSIONS_REQUEST_CODE)
+            // Only start activity if we have a valid activity reference
+            if (this.activity != null) {
+                this.activity?.startActivityForResult(intent, PERMISSIONS_REQUEST_CODE)
+            } else {
+                Log.w(TAG, "checkPermission - Activity is null, cannot request VPN permission")
+                havePermission = false
+            }
         } else {
             havePermission = true
         }
@@ -293,7 +301,9 @@ class WireguardFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     private fun getDownloadData(result: Result) {
         scope.launch(Dispatchers.IO) {
             try {
-                val downloadData = futureBackend.await().getTransferData(tunnel(tunnelName)).rxBytes
+                val backend = futureBackend.await()
+                val stats = backend.getStatistics(tunnel(tunnelName))
+                val downloadData = stats.totalRx()
                 flutterSuccess(result, downloadData)
             } catch (e: Throwable) {
                 Log.e(TAG, "getDownloadData - ERROR - ${e.message}")
@@ -305,7 +315,9 @@ class WireguardFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     private fun getUploadData(result: Result) {
         scope.launch(Dispatchers.IO) {
             try {
-                val uploadData = futureBackend.await().getTransferData(tunnel(tunnelName)).txBytes
+                val backend = futureBackend.await()
+                val stats = backend.getStatistics(tunnel(tunnelName))
+                val uploadData = stats.totalTx()
                 flutterSuccess(result, uploadData)
             } catch (e: Throwable) {
                 Log.e(TAG, "getUploadData - ERROR - ${e.message}")
